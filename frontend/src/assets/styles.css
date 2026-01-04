@@ -67,8 +67,8 @@
   --scrollbar-track: rgba(0, 0, 0, 0.2);
   --scrollbar-thumb: rgba(139, 92, 246, 0.3);
   --scrollbar-thumb-hover: rgba(139, 92, 246, 0.5);
-
-  color-scheme: dark;
+  --app-color-scheme: dark;
+  color-scheme: var(--app-color-scheme);
 }
 
 [data-theme='light'] {
@@ -105,11 +105,11 @@
   --badge-bg: rgba(0, 0, 0, 0.04);
 
   /* Scrollbar */
-  --scrollbar-track: rgba(0, 0, 0, 0.05);
-  --scrollbar-thumb: rgba(0, 0, 0, 0.1);
-  --scrollbar-thumb-hover: rgba(0, 0, 0, 0.2);
+  --scrollbar-track: rgba(15, 23, 42, 0.08);
+  --scrollbar-thumb: rgba(15, 23, 42, 0.35);
+  --scrollbar-thumb-hover: rgba(15, 23, 42, 0.55);
+  --app-color-scheme: light;
 
-  color-scheme: light;
 }
 
 /* Reset & Base */
@@ -134,6 +134,7 @@ body {
   color: var(--text-primary);
   line-height: 1.6;
   overflow-x: hidden;
+  scrollbar-color: var(--scrollbar-thumb) var(--scrollbar-track);
 }
 
 #app {
