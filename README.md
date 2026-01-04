@@ -28,6 +28,15 @@
   - **单一亮色主题**：精心调优的清爽亮色界面（Light Mode Only），彻底解决 Windows 下 WebView2 滚动条渲染伪影问题。
   - **侧边栏布局**：左侧统一管理连接与日志，右侧专注内容探索，大屏（1920px）适配更佳。
 
+## 📸 界面预览
+
+<div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px;">
+  <img src="./images/ScreenShot_2026-01-04_162901_472.png" alt="Connection & History" style="border-radius: 8px; border: 1px solid #eee;">
+  <img src="./images/ScreenShot_2026-01-04_163007_370.png" alt="Tool Inspection" style="border-radius: 8px; border: 1px solid #eee;">
+  <img src="./images/ScreenShot_2026-01-04_163040_863.png" alt="Resources & Prompts" style="border-radius: 8px; border: 1px solid #eee;">
+</div>
+
+
 ## 📂 目录结构
 
 | 目录 | 说明 |
