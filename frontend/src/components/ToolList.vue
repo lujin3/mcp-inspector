@@ -548,6 +548,14 @@ function handleCall(tool: Tool) {
   color: var(--text-secondary);
   border-bottom: 1px dashed var(--border-subtle);
   padding-bottom: 16px;
+  max-height: 300px;
+  overflow-y: auto;
+  overflow-x: hidden;
+  word-break: break-word; /* Prevent long words form overflowing */
+  overflow-wrap: break-word;
+  /* Custom scrollbar for description area */
+  scrollbar-width: thin;
+  scrollbar-color: var(--scrollbar-thumb-bg) var(--scrollbar-track-bg);
 }
 
 .markdown-description :deep(p) { margin: 8px 0; }
@@ -565,8 +573,12 @@ function handleCall(tool: Tool) {
   border: 1px solid var(--border-subtle);
   padding: 12px;
   border-radius: 8px;
-  overflow: auto;
+  overflow-x: auto; /* Allow scrolling if absolutely necessary */
+  overflow-y: hidden;
   margin: 12px 0;
+  white-space: pre-wrap; /* Force text wrapping */
+  word-wrap: break-word; /* legacy support */
+  width: 100%; /* Constrain width */
 }
 .markdown-description :deep(ul), .markdown-description :deep(ol) {
   padding-left: 20px;
