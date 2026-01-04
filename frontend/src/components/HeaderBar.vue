@@ -21,6 +21,20 @@
 
       <!-- Status & Time -->
       <div class="header-right">
+        <!-- Theme Toggle -->
+        <button 
+          class="theme-toggle" 
+          @click="$emit('toggle-theme')" 
+          :title="theme === 'dark' ? '切换至亮色模式' : '切换至暗色模式'"
+        >
+          <svg v-if="theme === 'dark'" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.07" x2="5.64" y2="17.66"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/>
+          </svg>
+          <svg v-else width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>
+          </svg>
+        </button>
+
         <div class="status-badge" :class="status">
           <span class="status-dot"></span>
           <span class="status-text">{{ statusText }}</span>
@@ -40,7 +54,14 @@
 <script setup lang="ts">
 import { ref, computed, onMounted, onUnmounted } from 'vue';
 
-const props = defineProps<{ status: string }>();
+const props = defineProps<{ 
+  status: string,
+  theme: 'dark' | 'light'
+}>();
+
+const emit = defineEmits<{
+  (e: 'toggle-theme'): void
+}>();
 
 const currentTime = ref(new Date().toLocaleTimeString('zh-CN', { 
   hour: '2-digit', 
@@ -79,16 +100,17 @@ const statusText = computed(() => {
 
 <style scoped>
 .header {
-  background: linear-gradient(180deg, rgba(17, 24, 39, 0.98) 0%, rgba(17, 24, 39, 0.95) 100%);
+  background: var(--bg-card);
   border-bottom: 1px solid var(--border-subtle);
   backdrop-filter: blur(20px);
   position: sticky;
   top: 0;
   z-index: 100;
+  box-shadow: var(--shadow-sm);
 }
 
 .header-inner {
-  max-width: 1440px;
+  max-width: 1920px;
   margin: 0 auto;
   padding: 16px 24px;
   display: flex;
@@ -141,9 +163,13 @@ const statusText = computed(() => {
   font-size: 0.75rem;
   color: var(--text-muted);
   font-weight: 500;
-  background: rgba(255, 255, 255, 0.05);
+  background: rgba(139, 92, 246, 0.05);
   padding: 1px 6px;
   border-radius: 4px;
+}
+
+[data-theme='light'] .version {
+  background: rgba(0, 0, 0, 0.05);
 }
 
 .author {
@@ -157,6 +183,35 @@ const statusText = computed(() => {
   display: flex;
   align-items: center;
   gap: 16px;
+}
+
+.theme-toggle {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  color: var(--text-secondary);
+  transition: all var(--transition-fast);
+}
+
+[data-theme='light'] .theme-toggle {
+  background: rgba(0, 0, 0, 0.03);
+}
+
+.theme-toggle:hover {
+  background: rgba(255, 255, 255, 0.1);
+  border-color: var(--border-light);
+  color: var(--primary-color);
+  transform: translateY(-2px);
+}
+
+[data-theme='light'] .theme-toggle:hover {
+  background: rgba(0, 0, 0, 0.05);
 }
 
 .status-badge {
@@ -229,6 +284,10 @@ const statusText = computed(() => {
   font-size: 0.85rem;
   color: var(--text-secondary);
   font-family: 'JetBrains Mono', monospace;
+}
+
+[data-theme='light'] .time-display {
+  background: rgba(0, 0, 0, 0.03);
 }
 
 .time-display svg {

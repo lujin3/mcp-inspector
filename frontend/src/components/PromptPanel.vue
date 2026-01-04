@@ -81,7 +81,7 @@ defineProps<{ prompts: Prompt[] }>();
 .empty-icon {
   width: 80px;
   height: 80px;
-  background: rgba(16, 185, 129, 0.1);
+  background: var(--success-bg);
   border-radius: 50%;
   display: flex;
   align-items: center;
@@ -182,7 +182,7 @@ defineProps<{ prompts: Prompt[] }>();
   gap: 4px;
   font-size: 0.75rem;
   padding: 4px 10px;
-  background: rgba(255, 255, 255, 0.06);
+  background: var(--badge-bg);
   border: 1px solid var(--border-subtle);
   border-radius: var(--radius-full);
   color: var(--text-secondary);
@@ -190,7 +190,7 @@ defineProps<{ prompts: Prompt[] }>();
 }
 
 .arg-badge.required {
-  background: rgba(16, 185, 129, 0.1);
+  background: var(--success-bg);
   border-color: rgba(16, 185, 129, 0.3);
   color: var(--success);
 }

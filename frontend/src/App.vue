@@ -1,6 +1,10 @@
 <template>
   <div class="app-layout">
-    <HeaderBar :status="connectionStatus" />
+    <HeaderBar 
+      :status="connectionStatus" 
+      :theme="theme"
+      @toggle-theme="toggleTheme"
+    />
     
     <main class="main-content">
       <div class="workspace">
@@ -131,6 +135,61 @@
               </div>
             </div>
           </section>
+
+          <!-- History Panel moved to sidebar -->
+          <section class="panel history-panel">
+            <div class="panel-header history-header">
+              <div class="panel-title compact">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <circle cx="12" cy="12" r="10"/>
+                  <polyline points="12 6 12 12 16 14"/>
+                </svg>
+                <h3>活动日志</h3>
+              </div>
+              <div class="history-actions">
+                <span class="count-badge small">{{ logs.length }}</span>
+                <button class="btn-icon-small" @click="clearLogs" title="清空日志">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <polyline points="3 6 5 6 21 6"/>
+                    <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>
+                  </svg>
+                </button>
+              </div>
+            </div>
+            <div class="history-content">
+              <div v-if="logs.length === 0" class="empty-logs">
+                <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                  <rect x="3" y="4" width="18" height="16" rx="2"/>
+                  <line x1="7" y1="9" x2="17" y2="9"/>
+                  <line x1="7" y1="13" x2="13" y2="13"/>
+                </svg>
+                <p>暂无活动记录</p>
+              </div>
+              <div v-else class="log-list">
+                <div
+                  v-for="(entry, idx) in visibleHistory"
+                  :key="'log-' + idx"
+                  class="log-item"
+                >
+                  <details class="log-details">
+                    <summary>
+                      <span class="log-index">{{ idx + 1 }}</span>
+                      <span class="log-text">{{ summarizeLog(entry) }}</span>
+                    </summary>
+                    <pre class="log-full">{{ entry }}</pre>
+                  </details>
+                </div>
+              </div>
+              <div v-if="logs.length > historyLimit" class="history-footer">
+                <button class="btn-text small" @click="historyExpanded = !historyExpanded">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <polyline :points="historyExpanded ? '18 15 12 9 6 15' : '6 9 12 15 18 9'"/>
+                  </svg>
+                  {{ historyExpanded ? '收起' : `显示全部 ${logs.length} 条` }}
+                </button>
+              </div>
+            </div>
+          </section>
         </aside>
 
         <!-- Main Area -->
@@ -202,61 +261,6 @@
               </div>
             </div>
           </section>
-
-          <!-- History Panel -->
-          <section class="panel history-panel">
-            <div class="panel-header history-header">
-              <div class="panel-title compact">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                  <circle cx="12" cy="12" r="10"/>
-                  <polyline points="12 6 12 12 16 14"/>
-                </svg>
-                <h3>活动日志</h3>
-              </div>
-              <div class="history-actions">
-                <span class="count-badge small">{{ logs.length }}</span>
-                <button class="btn-icon-small" @click="clearLogs" title="清空日志">
-                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                    <polyline points="3 6 5 6 21 6"/>
-                    <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>
-                  </svg>
-                </button>
-              </div>
-            </div>
-            <div class="history-content">
-              <div v-if="logs.length === 0" class="empty-logs">
-                <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
-                  <rect x="3" y="4" width="18" height="16" rx="2"/>
-                  <line x1="7" y1="9" x2="17" y2="9"/>
-                  <line x1="7" y1="13" x2="13" y2="13"/>
-                </svg>
-                <p>暂无活动记录</p>
-              </div>
-              <div v-else class="log-list">
-                <div
-                  v-for="(entry, idx) in visibleHistory"
-                  :key="'log-' + idx"
-                  class="log-item"
-                >
-                  <details class="log-details">
-                    <summary>
-                      <span class="log-index">{{ idx + 1 }}</span>
-                      <span class="log-text">{{ summarizeLog(entry) }}</span>
-                    </summary>
-                    <pre class="log-full">{{ entry }}</pre>
-                  </details>
-                </div>
-              </div>
-              <div v-if="logs.length > historyLimit" class="history-footer">
-                <button class="btn-text small" @click="historyExpanded = !historyExpanded">
-                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                    <polyline :points="historyExpanded ? '18 15 12 9 6 15' : '6 9 12 15 18 9'"/>
-                  </svg>
-                  {{ historyExpanded ? '收起' : `显示全部 ${logs.length} 条` }}
-                </button>
-              </div>
-            </div>
-          </section>
         </div>
       </div>
     </main>
@@ -264,13 +268,32 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed } from 'vue';
+import { ref, computed, onMounted } from 'vue';
 import HeaderBar from './components/HeaderBar.vue';
 import ToolList from './components/ToolList.vue';
 import ResourcePanel from './components/ResourcePanel.vue';
 import PromptPanel from './components/PromptPanel.vue';
 import type { Tool, Resource, Prompt, HeaderPair, ConnectResult, ToolCallPayload } from '@/types';
 import { mcpApi, isRunningInTauri } from '@/services/mcpApi';
+
+const theme = ref<'dark' | 'light'>('dark');
+
+const toggleTheme = () => {
+  theme.value = theme.value === 'dark' ? 'light' : 'dark';
+  document.documentElement.setAttribute('data-theme', theme.value);
+  localStorage.setItem('mcp-inspector-theme', theme.value);
+};
+
+onMounted(() => {
+  // Initialize theme
+  const savedTheme = localStorage.getItem('mcp-inspector-theme') as 'dark' | 'light';
+  if (savedTheme) {
+    theme.value = savedTheme;
+  } else if (window.matchMedia('(prefers-color-scheme: light)').matches) {
+    theme.value = 'light';
+  }
+  document.documentElement.setAttribute('data-theme', theme.value);
+});
 
 const serverUrl = ref('http://localhost:8000/mcp');
 const headerInputs = ref<HeaderPair[]>([{ name: '', value: '' }]);
@@ -281,7 +304,7 @@ const tools = ref<Tool[]>([]);
 const resources = ref<Resource[]>([]);
 const prompts = ref<Prompt[]>([]);
 const logs = ref<string[]>([]);
-const historyLimit = 5;
+const historyLimit = 10;
 const HISTORY_SUMMARY_LENGTH = 100;
 const historyExpanded = ref(false);
 const runningInTauri = ref(isRunningInTauri());
@@ -503,7 +526,7 @@ async function handleCallTool(payload: ToolCallPayload) {
 
 .main-content {
   flex: 1;
-  max-width: 1440px;
+  max-width: 1920px;
   width: 100%;
   margin: 0 auto;
   padding: 24px;
@@ -519,10 +542,11 @@ async function handleCallTool(payload: ToolCallPayload) {
 .sidebar {
   display: flex;
   flex-direction: column;
+  gap: 24px;
 }
 
 .panel {
-  background: rgba(17, 24, 39, 0.85);
+  background: var(--bg-card);
   backdrop-filter: blur(20px);
   border: 1px solid var(--border-subtle);
   border-radius: var(--radius-xl);
@@ -530,8 +554,9 @@ async function handleCallTool(payload: ToolCallPayload) {
 }
 
 .connection-panel {
-  position: sticky;
-  top: 100px;
+  /* Remove sticky position to allow sidebar scrolling with logs */
+  position: relative;
+  top: 0;
 }
 
 .panel-header {
@@ -614,7 +639,7 @@ async function handleCallTool(payload: ToolCallPayload) {
 .form-input {
   width: 100%;
   padding: 11px 14px;
-  background: rgba(0, 0, 0, 0.3);
+  background: var(--input-bg);
   border: 1px solid var(--border-light);
   border-radius: var(--radius-md);
   color: var(--text-primary);
@@ -653,7 +678,7 @@ async function handleCallTool(payload: ToolCallPayload) {
 .btn-icon {
   width: 32px;
   height: 32px;
-  background: rgba(255, 255, 255, 0.05);
+  background: var(--badge-bg);
   border: 1px solid var(--border-subtle);
   border-radius: var(--radius-sm);
   color: var(--text-muted);
@@ -747,7 +772,7 @@ async function handleCallTool(payload: ToolCallPayload) {
 }
 
 .btn-secondary {
-  background: rgba(255, 255, 255, 0.06);
+  background: var(--badge-bg);
   color: var(--text-secondary);
   border: 1px solid var(--border-subtle);
   padding: 12px;
@@ -841,7 +866,7 @@ async function handleCallTool(payload: ToolCallPayload) {
 
 .tab-badge {
   padding: 2px 7px;
-  background: rgba(255, 255, 255, 0.1);
+  background: var(--badge-bg);
   border-radius: var(--radius-full);
   font-size: 0.72rem;
   font-weight: 600;
@@ -981,7 +1006,7 @@ async function handleCallTool(payload: ToolCallPayload) {
 .result-payload {
   margin: 0;
   padding: 10px;
-  background: rgba(0, 0, 0, 0.3);
+  background: var(--input-bg);
   border-radius: var(--radius-sm);
   font-size: 0.78rem;
   color: var(--text-secondary);
@@ -1012,7 +1037,7 @@ async function handleCallTool(payload: ToolCallPayload) {
 .btn-icon-small {
   width: 28px;
   height: 28px;
-  background: rgba(255, 255, 255, 0.05);
+  background: var(--badge-bg);
   border: none;
   border-radius: var(--radius-sm);
   color: var(--text-muted);
@@ -1061,7 +1086,7 @@ async function handleCallTool(payload: ToolCallPayload) {
 }
 
 .log-item {
-  background: rgba(0, 0, 0, 0.2);
+  background: var(--panel-bg-subtle);
   border-radius: var(--radius-sm);
   overflow: hidden;
 }
@@ -1076,7 +1101,7 @@ async function handleCallTool(payload: ToolCallPayload) {
 }
 
 .log-details summary:hover {
-  background: rgba(255, 255, 255, 0.03);
+  background: var(--badge-bg);
 }
 
 .log-index {
@@ -1106,7 +1131,7 @@ async function handleCallTool(payload: ToolCallPayload) {
 .log-full {
   margin: 0;
   padding: 12px;
-  background: rgba(0, 0, 0, 0.3);
+  background: var(--input-bg);
   font-size: 0.78rem;
   color: var(--text-muted);
   white-space: pre-wrap;

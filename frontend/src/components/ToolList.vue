@@ -602,7 +602,7 @@ function handleCall(tool: Tool) {
 }
 
 .expand-btn:hover {
-  background: rgba(255, 255, 255, 0.1);
+  background: var(--badge-bg);
   color: var(--text-primary);
 }
 
@@ -633,7 +633,7 @@ function handleCall(tool: Tool) {
 .json-textarea {
   width: 100%;
   padding: 12px;
-  background: rgba(0, 0, 0, 0.3);
+  background: var(--input-bg);
   border: 1px solid var(--border-light);
   border-radius: var(--radius-md);
   color: var(--text-primary);
@@ -728,7 +728,7 @@ function handleCall(tool: Tool) {
 .field-input {
   width: 100%;
   padding: 10px 12px;
-  background: rgba(0, 0, 0, 0.3);
+  background: var(--input-bg);
   border: 1px solid var(--border-light);
   border-radius: var(--radius-md);
   color: var(--text-primary);
@@ -749,7 +749,7 @@ function handleCall(tool: Tool) {
 .field-select {
   width: 100%;
   padding: 10px 12px;
-  background: rgba(0, 0, 0, 0.3);
+  background: var(--input-bg);
   border: 1px solid var(--border-light);
   border-radius: var(--radius-md);
   color: var(--text-primary);
@@ -789,7 +789,7 @@ function handleCall(tool: Tool) {
   position: absolute;
   cursor: pointer;
   top: 0; left: 0; right: 0; bottom: 0;
-  background: rgba(255, 255, 255, 0.1);
+  background: var(--input-bg);
   border: 1px solid var(--border-light);
   border-radius: 26px;
   transition: all var(--transition-fast);
@@ -865,7 +865,7 @@ function handleCall(tool: Tool) {
 .local-result {
   margin-top: 20px;
   padding: 16px;
-  background: rgba(255, 255, 255, 0.03);
+  background: var(--panel-bg-subtle);
   border-radius: var(--radius-md);
   border-left: 3px solid transparent;
   animation: slideUp 0.3s ease-out;
@@ -917,14 +917,16 @@ function handleCall(tool: Tool) {
 .result-payload-box {
   margin: 0;
   padding: 12px;
-  background: rgba(0, 0, 0, 0.4);
+  background: var(--input-bg);
   border-radius: var(--radius-sm);
   font-size: 0.78rem;
   color: var(--text-secondary);
   overflow: auto;
   max-height: 300px;
   font-family: 'JetBrains Mono', monospace;
-  border: 1px solid rgba(255, 255, 255, 0.05);
+  border: 1px solid var(--border-subtle);
+  white-space: pre-wrap;
+  word-break: break-all;
 }
 
 @keyframes slideUp {

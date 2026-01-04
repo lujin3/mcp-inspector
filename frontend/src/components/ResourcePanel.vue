@@ -72,7 +72,7 @@ defineProps<{ resources: Resource[] }>();
 .empty-icon {
   width: 80px;
   height: 80px;
-  background: rgba(6, 182, 212, 0.1);
+  background: var(--info-bg);
   border-radius: 50%;
   display: flex;
   align-items: center;
@@ -149,7 +149,7 @@ defineProps<{ resources: Resource[] }>();
 .mime-badge {
   font-size: 0.7rem;
   padding: 3px 8px;
-  background: rgba(6, 182, 212, 0.15);
+  background: var(--info-bg);
   color: var(--accent-color);
   border-radius: var(--radius-full);
   font-family: 'JetBrains Mono', monospace;
@@ -160,7 +160,7 @@ defineProps<{ resources: Resource[] }>();
   align-items: center;
   gap: 8px;
   padding: 10px 12px;
-  background: rgba(0, 0, 0, 0.25);
+  background: var(--input-bg);
   border-radius: var(--radius-md);
   margin-bottom: 10px;
 }
