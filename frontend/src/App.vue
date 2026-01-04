@@ -33,12 +33,65 @@
                   </svg>
                   服务器地址
                 </label>
-                <input 
-                  class="form-input" 
-                  v-model="serverUrl" 
-                  placeholder="http://localhost:8000/mcp"
-                  :disabled="connectionStatus === 'connected'"
-                />
+                <div class="url-input-wrapper">
+                  <input 
+                    class="form-input" 
+                    v-model="serverUrl" 
+                    placeholder="http://localhost:8000/mcp"
+                    :disabled="connectionStatus === 'connected'"
+                  />
+                  <!-- History Button -->
+                  <div class="history-dropdown-container">
+                    <button 
+                      class="btn-icon history-btn" 
+                      @click="showHistoryDropdown = !showHistoryDropdown"
+                      :title="showHistoryDropdown ? '关闭历史记录' : '历史记录'"
+                      :disabled="connectionStatus === 'connected'"
+                    >
+                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <circle cx="12" cy="12" r="10"/>
+                        <polyline points="12 6 12 12 16 14"/>
+                      </svg>
+                    </button>
+                    <!-- Dropdown Menu -->
+                    <div v-if="showHistoryDropdown" class="history-dropdown animate-fadeIn">
+                       <div class="history-title">最近连接</div>
+                       <div v-if="connectionHistory.length === 0" class="history-empty">暂无历史记录</div>
+                       <div v-else class="history-list">
+                         <div 
+                           v-for="(item, index) in connectionHistory" 
+                           :key="item.timestamp" 
+                           class="history-item"
+                           @click="selectHistory(item)"
+                         >
+                           <div class="history-item-content">
+                             <div class="history-url">{{ item.url }}</div>
+                             <div class="history-meta">
+                               <span v-if="item.headers.length" class="history-badge">{{ item.headers.length }} Headers</span>
+                               <span class="history-time">{{ formatHistoryTime(item.timestamp) }}</span>
+                             </div>
+                           </div>
+                           <button 
+                             class="delete-history-btn" 
+                             @click.stop="deleteHistoryItem(index)"
+                             title="删除此记录"
+                           >
+                             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                               <line x1="18" y1="6" x2="6" y2="18"/>
+                               <line x1="6" y1="6" x2="18" y2="18"/>
+                             </svg>
+                           </button>
+                         </div>
+                       </div>
+                    </div>
+                    <!-- Overlay for closing -->
+                    <div 
+                      v-if="showHistoryDropdown" 
+                      class="dropdown-overlay" 
+                      @click="showHistoryDropdown = false"
+                    ></div>
+                  </div>
+                </div>
               </div>
 
               <!-- Headers -->
@@ -266,13 +319,19 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed } from 'vue';
+import { ref, computed, onMounted } from 'vue';
 import HeaderBar from './components/HeaderBar.vue';
 import ToolList from './components/ToolList.vue';
 import ResourcePanel from './components/ResourcePanel.vue';
 import PromptPanel from './components/PromptPanel.vue';
 import type { Tool, Resource, Prompt, HeaderPair, ConnectResult, ToolCallPayload } from '@/types';
 import { mcpApi, isRunningInTauri } from '@/services/mcpApi';
+
+interface ConnectionConfig {
+  url: string;
+  headers: HeaderPair[];
+  timestamp: number;
+}
 
 
 // Theme initialization removed as we are now single-theme
@@ -289,6 +348,82 @@ const historyLimit = 5;
 const HISTORY_SUMMARY_LENGTH = 100;
 const historyExpanded = ref(false);
 const runningInTauri = ref(isRunningInTauri());
+
+// Connection History
+const connectionHistory = ref<ConnectionConfig[]>([]);
+const showHistoryDropdown = ref(false);
+
+onMounted(() => {
+  loadHistory();
+});
+
+function loadHistory() {
+  const saved = localStorage.getItem('mcp-connection-history');
+  if (saved) {
+    try {
+      connectionHistory.value = JSON.parse(saved);
+      // Auto-fill from latest history if available
+      if (connectionHistory.value.length > 0) {
+        const latest = connectionHistory.value[0];
+        serverUrl.value = latest.url;
+        if (latest.headers && latest.headers.length > 0) {
+          headerInputs.value = JSON.parse(JSON.stringify(latest.headers));
+        }
+      } else {
+        // Default fallback if history array is empty
+        serverUrl.value = 'http://localhost:8080/mcp';
+      }
+    } catch {
+      connectionHistory.value = [];
+      serverUrl.value = 'http://localhost:8080/mcp';
+    }
+  } else {
+    // No history saved at all
+    serverUrl.value = 'http://localhost:8080/mcp';
+  }
+}
+
+function saveHistory(url: string, headers: HeaderPair[]) {
+  const newConfig: ConnectionConfig = {
+    url,
+    headers,
+    timestamp: Date.now()
+  };
+
+  // Remove duplicate (same URL) to update its position/info
+  const existingIndex = connectionHistory.value.findIndex(c => c.url === url);
+  if (existingIndex !== -1) {
+    connectionHistory.value.splice(existingIndex, 1);
+  }
+
+  // Add to top
+  connectionHistory.value.unshift(newConfig);
+
+  // Keep top 10
+  if (connectionHistory.value.length > 10) {
+    connectionHistory.value.pop();
+  }
+
+  localStorage.setItem('mcp-connection-history', JSON.stringify(connectionHistory.value));
+}
+
+function selectHistory(config: ConnectionConfig) {
+  serverUrl.value = config.url;
+  // Deep copy headers to avoid reference issues
+  headerInputs.value = config.headers.length > 0 
+    ? JSON.parse(JSON.stringify(config.headers)) 
+    : [{ name: '', value: '' }];
+  showHistoryDropdown.value = false;
+}
+
+function deleteHistoryItem(index: number) {
+  connectionHistory.value.splice(index, 1);
+  localStorage.setItem('mcp-connection-history', JSON.stringify(connectionHistory.value));
+}
+
+function formatHistoryTime(timestamp: number) {
+  return new Date(timestamp).toLocaleString();
+}
 
 type InspectorTab = 'tools' | 'resources' | 'prompts';
 
@@ -433,6 +568,11 @@ async function connectToServer() {
     pushLog(`[${new Date().toLocaleTimeString()}] 连接失败: ${formatError(err)}`);
   } finally {
     isConnecting.value = false;
+  }
+  
+  // Save history on success
+  if (connectionStatus.value === 'connected') {
+    saveHistory(serverUrl.value, preparedHeaders);
   }
 }
 
@@ -626,6 +766,143 @@ async function handleCallTool(payload: ToolCallPayload) {
   color: var(--text-primary);
   font-size: 0.9rem;
   transition: all var(--transition-fast);
+}
+
+.url-input-wrapper {
+  position: relative;
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.history-btn {
+  flex-shrink: 0;
+  width: 42px;
+  height: 42px;
+  border-radius: var(--radius-md);
+  border-color: var(--border-light);
+}
+
+.history-dropdown-container {
+  position: relative;
+}
+
+.history-dropdown {
+  position: absolute;
+  top: 100%;
+  right: 0;
+  margin-top: 8px;
+  width: 320px;
+  background: var(--bg-card);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-lg);
+  z-index: 100;
+  padding: 8px 0;
+  backdrop-filter: blur(20px);
+}
+
+.history-title {
+  padding: 8px 16px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--text-muted);
+  border-bottom: 1px solid var(--border-subtle);
+  margin-bottom: 4px;
+}
+
+.history-empty {
+  padding: 24px;
+  text-align: center;
+  color: var(--text-dim);
+  font-size: 0.85rem;
+}
+
+.history-list {
+  max-height: 240px;
+  overflow-y: auto;
+}
+
+.history-item {
+  padding: 10px 16px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  cursor: pointer;
+  transition: background var(--transition-fast);
+  gap: 12px;
+}
+
+.history-item:hover {
+  background: var(--bg-tertiary);
+}
+
+.history-item-content {
+  flex: 1;
+  min-width: 0;
+}
+
+.history-url {
+  font-size: 0.88rem;
+  color: var(--text-primary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  margin-bottom: 4px;
+  font-family: var(--font-mono);
+}
+
+.history-meta {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.history-badge {
+  font-size: 0.7rem;
+  padding: 1px 6px;
+  background: var(--badge-bg);
+  border-radius: var(--radius-full);
+  color: var(--text-secondary);
+}
+
+.history-time {
+  font-size: 0.72rem;
+  color: var(--text-dim);
+}
+
+.delete-history-btn {
+  width: 24px;
+  height: 24px;
+  border: none;
+  background: transparent;
+  color: var(--text-dim);
+  border-radius: var(--radius-full);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  opacity: 0;
+  transition: all var(--transition-fast);
+}
+
+.history-item:hover .delete-history-btn {
+  opacity: 1;
+}
+
+.delete-history-btn:hover {
+  background: var(--error-bg);
+  color: var(--error);
+}
+
+.dropdown-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 90;
+  cursor: default;
 }
 
 .form-input:focus {
