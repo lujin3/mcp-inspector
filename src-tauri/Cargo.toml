@@ -1,5 +1,5 @@
 [package]
-name = "mcp_inspector_tauri"
+name = "mcp_inspector"
 version = "0.0.3"
 edition = "2021"
 description = "Tauri backend for the MCP Inspector"

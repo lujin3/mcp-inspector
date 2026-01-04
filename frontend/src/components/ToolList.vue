@@ -47,6 +47,7 @@
       <div class="tool-body" v-show="expandedTool === tool.name">
         <!-- Markdown Description -->
         <div v-if="tool.description" class="markdown-description" v-html="renderMarkdown(tool.description)"></div>
+
         <!-- Raw JSON Input -->
         <div v-if="fields(tool).length === 0" class="json-input-section">
           <label class="input-label">
@@ -62,13 +63,12 @@
               placeholder='{"key": "value"}'
               rows="4"
               class="json-textarea"
+              :class="{ 'has-error': jsonErrors[tool.name] }"
             ></textarea>
           </div>
-          <p class="json-error" v-if="jsonErrors[tool.name]">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <circle cx="12" cy="12" r="10"/>
-              <line x1="12" y1="8" x2="12" y2="12"/>
-              <line x1="12" y1="16" x2="12.01" y2="16"/>
+          <p class="field-error" v-if="jsonErrors[tool.name]">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>
             </svg>
             {{ jsonErrors[tool.name] }}
           </p>
@@ -102,6 +102,8 @@
                 v-model="schemaEntry(tool)[field]"
                 :placeholder="getPlaceholder(tool, field)"
                 class="field-input"
+                :class="{ 'has-error': validationErrors[tool.name]?.[field] }"
+                @input="clearFieldError(tool.name, field)"
               />
               
               <!-- Number Input -->
@@ -114,6 +116,8 @@
                 :max="getFieldMax(tool, field)"
                 :step="getFieldStep(tool, field)"
                 class="field-input"
+                :class="{ 'has-error': validationErrors[tool.name]?.[field] }"
+                @input="clearFieldError(tool.name, field)"
               />
               
               <!-- Boolean Toggle -->
@@ -122,6 +126,7 @@
                   <input 
                     type="checkbox" 
                     v-model="booleanEntry(tool)[field]"
+                    @change="clearFieldError(tool.name, field)"
                   />
                   <span class="toggle-slider"></span>
                 </label>
@@ -133,6 +138,8 @@
                 v-else-if="getInputType(tool, field) === 'select'"
                 v-model="schemaEntry(tool)[field]"
                 class="field-select"
+                :class="{ 'has-error': validationErrors[tool.name]?.[field] }"
+                @change="clearFieldError(tool.name, field)"
               >
                 <option value="" disabled>请选择...</option>
                 <option 
@@ -151,17 +158,33 @@
                 :placeholder="getPlaceholder(tool, field)"
                 rows="3"
                 class="json-textarea small"
+                :class="{ 'has-error': validationErrors[tool.name]?.[field] }"
+                @input="clearFieldError(tool.name, field)"
               ></textarea>
+
+              <!-- Validation Error -->
+              <p class="field-error" v-if="validationErrors[tool.name]?.[field]">
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>
+                </svg>
+                {{ validationErrors[tool.name][field] }}
+              </p>
             </div>
           </div>
         </div>
 
         <!-- Run Button -->
-        <button class="run-button" type="button" @click="handleCall(tool)">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <button 
+          class="run-button" 
+          type="button" 
+          @click="handleCall(tool)"
+          :disabled="callingTools.has(tool.name)"
+        >
+          <div v-if="callingTools.has(tool.name)" class="btn-loader"></div>
+          <svg v-else width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
             <polygon points="5 3 19 12 5 21 5 3"/>
           </svg>
-          执行工具
+          {{ callingTools.has(tool.name) ? '执行中...' : '执行工具' }}
         </button>
       </div>
     </article>
@@ -173,7 +196,10 @@ import { reactive, ref } from 'vue';
 import { marked } from 'marked';
 import type { Tool, ToolCallPayload } from '@/types';
 
-const props = defineProps<{ tools: Tool[] }>();
+const props = defineProps<{ 
+  tools: Tool[],
+  callingTools: Set<string>
+}>();
 
 const emits = defineEmits<{
   (event: 'call', payload: ToolCallPayload): void;
@@ -183,6 +209,7 @@ const jsonArgs = reactive<Record<string, string>>({});
 const schemaArgs = reactive<Record<string, Record<string, string>>>({});
 const booleanArgs = reactive<Record<string, Record<string, boolean>>>({});
 const jsonErrors = reactive<Record<string, string | null>>({});
+const validationErrors = reactive<Record<string, Record<string, string>>>({});
 const expandedTool = ref<string | null>(null);
 
 function renderMarkdown(text: string) {
@@ -195,6 +222,15 @@ function renderMarkdown(text: string) {
 
 function toggleTool(toolName: string) {
   expandedTool.value = expandedTool.value === toolName ? null : toolName;
+  if (validationErrors[toolName]) {
+    delete validationErrors[toolName];
+  }
+}
+
+function clearFieldError(toolName: string, field: string) {
+  if (validationErrors[toolName] && validationErrors[toolName][field]) {
+    delete validationErrors[toolName][field];
+  }
 }
 
 function fields(tool: Tool): string[] {
@@ -238,25 +274,15 @@ function isRequired(tool: Tool, field: string): boolean {
 function getInputType(tool: Tool, field: string): 'text' | 'number' | 'boolean' | 'select' | 'json' {
   const schema = propertySchema(tool, field);
   if (!schema) return 'text';
-  
-  // Check for enum
-  if (schema.enum && Array.isArray(schema.enum)) {
-    return 'select';
-  }
-  
+  if (schema.enum && Array.isArray(schema.enum)) return 'select';
   const type = normalizeType(schema.type);
-  
   switch (type) {
     case 'number':
-    case 'integer':
-      return 'number';
-    case 'boolean':
-      return 'boolean';
+    case 'integer': return 'number';
+    case 'boolean': return 'boolean';
     case 'array':
-    case 'object':
-      return 'json';
-    default:
-      return 'text';
+    case 'object': return 'json';
+    default: return 'text';
   }
 }
 
@@ -268,21 +294,13 @@ function getEnumOptions(tool: Tool, field: string): string[] {
 function getPlaceholder(tool: Tool, field: string): string {
   const schema = propertySchema(tool, field);
   const type = normalizeType(schema?.type);
-  
-  if (schema?.default !== undefined) {
-    return `默认: ${JSON.stringify(schema.default)}`;
-  }
-  
+  if (schema?.default !== undefined) return `默认: ${JSON.stringify(schema.default)}`;
   switch (type) {
     case 'number':
-    case 'integer':
-      return '输入数字';
-    case 'array':
-      return '["item1", "item2"]';
-    case 'object':
-      return '{"key": "value"}';
-    default:
-      return `输入 ${field}`;
+    case 'integer': return '输入数字';
+    case 'array': return '["item1", "item2"]';
+    case 'object': return '{"key": "value"}';
+    default: return `输入 ${field}`;
   }
 }
 
@@ -303,16 +321,12 @@ function getFieldStep(tool: Tool, field: string): number | undefined {
 }
 
 function schemaEntry(tool: Tool): Record<string, string> {
-  if (!schemaArgs[tool.name]) {
-    schemaArgs[tool.name] = {};
-  }
+  if (!schemaArgs[tool.name]) schemaArgs[tool.name] = {};
   return schemaArgs[tool.name];
 }
 
 function booleanEntry(tool: Tool): Record<string, boolean> {
-  if (!booleanArgs[tool.name]) {
-    booleanArgs[tool.name] = {};
-  }
+  if (!booleanArgs[tool.name]) booleanArgs[tool.name] = {};
   return booleanArgs[tool.name];
 }
 
@@ -332,13 +346,8 @@ function coerceValue(raw: string, schema?: Record<string, any>): unknown {
       return trimmed;
     case 'array':
     case 'object':
-      try {
-        return JSON.parse(trimmed);
-      } catch {
-        return trimmed;
-      }
-    default:
-      return trimmed;
+      try { return JSON.parse(trimmed); } catch { return trimmed; }
+    default: return trimmed;
   }
 }
 
@@ -371,19 +380,12 @@ function buildPayload(tool: Tool): Record<string, unknown> | undefined {
   fieldList.forEach((field) => {
     const inputType = getInputType(tool, field);
     const schema = propertySchema(tool, field);
-    
     if (inputType === 'boolean') {
-      // Boolean values
-      if (boolValues[field] !== undefined) {
-        payload[field] = boolValues[field];
-      }
+      if (boolValues[field] !== undefined) payload[field] = boolValues[field];
     } else {
-      // String-based values
       const entry = stringValues[field] ?? '';
       const converted = coerceValue(entry, schema);
-      if (converted !== undefined && converted !== '') {
-        payload[field] = converted;
-      }
+      if (converted !== undefined && converted !== '') payload[field] = converted;
     }
   });
   
@@ -391,6 +393,36 @@ function buildPayload(tool: Tool): Record<string, unknown> | undefined {
 }
 
 function handleCall(tool: Tool) {
+  if (!validationErrors[tool.name]) validationErrors[tool.name] = {};
+  else Object.keys(validationErrors[tool.name]).forEach(key => delete validationErrors[tool.name][key]);
+  jsonErrors[tool.name] = null;
+
+  const fieldList = fields(tool);
+  let hasError = false;
+
+  if (fieldList.length > 0) {
+    const stringValues = schemaEntry(tool);
+    const boolValues = booleanEntry(tool);
+    fieldList.forEach(field => {
+      if (isRequired(tool, field)) {
+        const inputType = getInputType(tool, field);
+        const value = inputType === 'boolean' ? boolValues[field] : stringValues[field];
+        if (value === undefined || value === null || (typeof value === 'string' && value.trim() === '')) {
+          validationErrors[tool.name][field] = '此参数为必填项';
+          hasError = true;
+        }
+      }
+    });
+  } else {
+    const raw = (jsonArgs[tool.name] ?? '').trim();
+    if (!raw) {
+      jsonErrors[tool.name] = '请输入执行参数 (JSON)';
+      hasError = true;
+    }
+  }
+
+  if (hasError) return;
+
   const args = buildPayload(tool);
   if (jsonErrors[tool.name]) return;
   emits('call', { name: tool.name, args });
@@ -626,17 +658,19 @@ function handleCall(tool: Tool) {
   box-shadow: 0 0 0 3px rgba(139, 92, 246, 0.15);
 }
 
-.json-textarea::placeholder {
-  color: var(--text-dim);
+.json-textarea.has-error {
+  border-color: var(--error);
+  background: rgba(239, 68, 68, 0.05);
 }
 
-.json-error {
+.field-error {
   display: flex;
   align-items: center;
-  gap: 6px;
-  margin: 8px 0 0;
-  font-size: 0.8rem;
+  gap: 4px;
+  margin-top: 6px;
+  font-size: 0.75rem;
   color: var(--error);
+  font-weight: 500;
 }
 
 .fields-grid {
@@ -708,25 +742,13 @@ function handleCall(tool: Tool) {
 .field-input:focus {
   outline: none;
   border-color: var(--border-focus);
-  box-shadow: 0 0 0 3px rgba(139, 92, 246, 0.15);
 }
 
-.field-input::placeholder {
-  color: var(--text-dim);
+.field-input.has-error {
+  border-color: var(--error);
+  background: rgba(239, 68, 68, 0.05);
 }
 
-/* Number input specific styling */
-.field-input[type="number"] {
-  -moz-appearance: textfield;
-}
-
-.field-input[type="number"]::-webkit-outer-spin-button,
-.field-input[type="number"]::-webkit-inner-spin-button {
-  -webkit-appearance: none;
-  margin: 0;
-}
-
-/* Select dropdown */
 .field-select {
   width: 100%;
   padding: 10px 12px;
@@ -736,7 +758,6 @@ function handleCall(tool: Tool) {
   color: var(--text-primary);
   font-size: 0.9rem;
   cursor: pointer;
-  transition: border-color var(--transition-fast), box-shadow var(--transition-fast);
   appearance: none;
   background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%239ca3af' stroke-width='2'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E");
   background-repeat: no-repeat;
@@ -744,18 +765,10 @@ function handleCall(tool: Tool) {
   padding-right: 36px;
 }
 
-.field-select:focus {
-  outline: none;
-  border-color: var(--border-focus);
-  box-shadow: 0 0 0 3px rgba(139, 92, 246, 0.15);
+.field-select.has-error {
+  border-color: var(--error);
 }
 
-.field-select option {
-  background: var(--bg-secondary);
-  color: var(--text-primary);
-}
-
-/* Toggle switch for boolean */
 .toggle-wrapper {
   display: flex;
   align-items: center;
@@ -778,10 +791,7 @@ function handleCall(tool: Tool) {
 .toggle-slider {
   position: absolute;
   cursor: pointer;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
+  top: 0; left: 0; right: 0; bottom: 0;
   background: rgba(255, 255, 255, 0.1);
   border: 1px solid var(--border-light);
   border-radius: 26px;
@@ -791,10 +801,8 @@ function handleCall(tool: Tool) {
 .toggle-slider:before {
   position: absolute;
   content: "";
-  height: 20px;
-  width: 20px;
-  left: 2px;
-  bottom: 2px;
+  height: 20px; width: 20px;
+  left: 2px; bottom: 2px;
   background: var(--text-muted);
   border-radius: 50%;
   transition: all var(--transition-fast);
@@ -808,15 +816,6 @@ function handleCall(tool: Tool) {
 .toggle input:checked + .toggle-slider:before {
   transform: translateX(22px);
   background: var(--primary-color);
-}
-
-.toggle input:focus + .toggle-slider {
-  box-shadow: 0 0 0 3px rgba(139, 92, 246, 0.15);
-}
-
-.toggle-label {
-  font-size: 0.85rem;
-  color: var(--text-secondary);
 }
 
 .run-button {
@@ -838,23 +837,35 @@ function handleCall(tool: Tool) {
   box-shadow: 0 4px 12px rgba(139, 92, 246, 0.25);
 }
 
-.run-button:hover {
+.run-button:hover:not(:disabled) {
   transform: translateY(-1px);
   box-shadow: 0 6px 16px rgba(139, 92, 246, 0.35);
 }
 
-.run-button:active {
-  transform: translateY(0);
+.run-button:disabled {
+  opacity: 0.8;
+  cursor: not-allowed;
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-subtle);
+  color: var(--text-dim);
+  box-shadow: none;
+}
+
+.btn-loader {
+  width: 14px;
+  height: 14px;
+  border: 2px solid rgba(255, 255, 255, 0.2);
+  border-top-color: currentColor;
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
 }
 
 @keyframes slideUp {
-  from { 
-    opacity: 0; 
-    transform: translateY(-10px); 
-  }
-  to { 
-    opacity: 1; 
-    transform: translateY(0); 
-  }
+  from { opacity: 0; transform: translateY(-10px); }
+  to { opacity: 1; transform: translateY(0); }
 }
 </style>

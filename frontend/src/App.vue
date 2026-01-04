@@ -183,7 +183,7 @@
             <div class="tab-content">
               <!-- Tools Tab -->
               <div v-if="activeTab === 'tools'" class="tab-panel animate-fadeIn">
-                <ToolList :tools="tools" @call="handleCallTool" />
+                <ToolList :tools="tools" :callingTools="callingTools" @call="handleCallTool" />
                 
                 <!-- Tool Results -->
                 <div v-if="toolResults.length" class="results-section">
@@ -343,6 +343,7 @@ const activeTab = ref<InspectorTab>('tools');
 const toolResults = ref<ToolResultEntry[]>([]);
 const MAX_TOOL_RESULTS = 1;
 const MAX_LOGS = 200;
+const callingTools = ref(new Set<string>());
 
 const visibleHistory = computed(() => {
   if (historyExpanded.value) return logs.value;
@@ -497,6 +498,7 @@ function buildPayloadString(value: unknown) {
 
 async function handleCallTool(payload: ToolCallPayload) {
   const timestamp = new Date().toLocaleTimeString();
+  callingTools.value.add(payload.name);
   try {
     const result = await mcpApi.callTool(payload.name, payload.args);
     pushLog(`[${timestamp}] Tool "${payload.name}" 成功`);
@@ -518,6 +520,8 @@ async function handleCallTool(payload: ToolCallPayload) {
       message,
       timestamp,
     });
+  } finally {
+    callingTools.value.delete(payload.name);
   }
 }
 </script>
