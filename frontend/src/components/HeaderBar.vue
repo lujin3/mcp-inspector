@@ -13,7 +13,7 @@
         <div class="brand-text">
           <h1>MCP Inspector</h1>
           <div class="brand-meta">
-            <span class="version">v0.0.7</span>
+            <span class="version">v0.0.8</span>
             <span class="author">by lujin</span>
           </div>
         </div>

@@ -1,7 +1,7 @@
 # MCP Inspector
 
 ![License](https://img.shields.io/badge/license-MIT-blue.svg)
-![Version](https://img.shields.io/badge/version-0.0.7-green.svg)
+![Version](https://img.shields.io/badge/version-0.0.8-green.svg)
 ![Tauri](https://img.shields.io/badge/Tauri-v2-orange.svg)
 ![Vue](https://img.shields.io/badge/Vue-3-success.svg)
 
@@ -75,7 +75,7 @@ cargo tauri build
 
 > 构建产物位于 `src-tauri/target/release/bundle`。
 
-## 📝 更新日志 (v0.0.7)
+## 📝 更新日志 (v0.0.8)
 
 本次更新主要集中在**体验优化**与**稳定性修复**：
 
