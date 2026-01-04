@@ -6,45 +6,44 @@
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap');
 
 /* CSS Variables & Themes */
-:root,
-[data-theme='dark'] {
+:root {
   /* Primary Colors */
   --primary-gradient: linear-gradient(135deg, #6366f1 0%, #8b5cf6 50%, #06b6d4 100%);
   --primary-color: #8b5cf6;
   --primary-hover: #7c3aed;
   --accent-color: #06b6d4;
 
-  /* Background Colors */
-  --bg-primary: #0a0e1a;
-  --bg-secondary: #111827;
-  --bg-tertiary: #1f2937;
-  --bg-card: rgba(17, 24, 39, 0.8);
-  --bg-card-hover: rgba(31, 41, 55, 0.9);
+  /* Background Colors - LIGHT THEME DEFAULT */
+  --bg-primary: #f8fafc;
+  --bg-secondary: #ffffff;
+  --bg-tertiary: #f1f5f9;
+  --bg-card: rgba(255, 255, 255, 0.9);
+  --bg-card-hover: rgba(241, 245, 249, 1);
 
   /* Text Colors */
-  --text-primary: #f9fafb;
-  --text-secondary: #d1d5db;
-  --text-muted: #9ca3af;
-  --text-dim: #6b7280;
+  --text-primary: #0f172a;
+  --text-secondary: #334155;
+  --text-muted: #64748b;
+  --text-dim: #94a3b8;
 
   /* Status Colors */
   --success: #10b981;
-  --success-bg: rgba(16, 185, 129, 0.15);
+  --success-bg: rgba(16, 185, 129, 0.1);
   --warning: #f59e0b;
-  --warning-bg: rgba(245, 158, 11, 0.15);
+  --warning-bg: rgba(245, 158, 11, 0.1);
   --error: #ef4444;
-  --error-bg: rgba(239, 68, 68, 0.15);
+  --error-bg: rgba(239, 68, 68, 0.1);
   --info: #3b82f6;
-  --info-bg: rgba(59, 130, 246, 0.15);
+  --info-bg: rgba(59, 130, 246, 0.1);
 
   /* Border & Shadow */
-  --border-subtle: rgba(255, 255, 255, 0.06);
-  --border-light: rgba(255, 255, 255, 0.1);
+  --border-subtle: rgba(0, 0, 0, 0.05);
+  --border-light: rgba(0, 0, 0, 0.08);
   --border-focus: rgba(139, 92, 246, 0.5);
-  --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.3);
-  --shadow-md: 0 8px 24px rgba(0, 0, 0, 0.4);
-  --shadow-lg: 0 16px 48px rgba(0, 0, 0, 0.5);
-  --shadow-glow: 0 0 40px rgba(139, 92, 246, 0.15);
+  --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.05);
+  --shadow-md: 0 8px 24px rgba(0, 0, 0, 0.06);
+  --shadow-lg: 0 16px 48px rgba(0, 0, 0, 0.08);
+  --shadow-glow: 0 0 40px rgba(139, 92, 246, 0.1);
 
   /* Spacing */
   --radius-sm: 8px;
@@ -59,51 +58,11 @@
   --transition-slow: 400ms ease;
 
   /* Component Specific */
-  --input-bg: rgba(0, 0, 0, 0.3);
-  --panel-bg-subtle: rgba(255, 255, 255, 0.03);
-  --badge-bg: rgba(255, 255, 255, 0.05);
-
-  /* Scrollbar */
-  --scrollbar-track-bg: #0a0e1a;
-  /* Match bg-primary */
-  --scrollbar-thumb-bg: #4b5563;
-  --scrollbar-thumb-hover-bg: #6b7280;
-}
-
-[data-theme='light'] {
-  /* Background Colors */
-  --bg-primary: #f8fafc;
-  --bg-secondary: #ffffff;
-  --bg-tertiary: #f1f5f9;
-  --bg-card: rgba(255, 255, 255, 0.9);
-  --bg-card-hover: rgba(241, 245, 249, 1);
-
-  /* Text Colors */
-  --text-primary: #0f172a;
-  --text-secondary: #334155;
-  --text-muted: #64748b;
-  --text-dim: #94a3b8;
-
-  /* Border & Shadow */
-  --border-subtle: rgba(0, 0, 0, 0.05);
-  --border-light: rgba(0, 0, 0, 0.08);
-  --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.05);
-  --shadow-md: 0 8px 24px rgba(0, 0, 0, 0.06);
-  --shadow-lg: 0 16px 48px rgba(0, 0, 0, 0.08);
-  --shadow-glow: 0 0 40px rgba(139, 92, 246, 0.1);
-
-  /* Status Background Adjustments */
-  --success-bg: rgba(16, 185, 129, 0.1);
-  --warning-bg: rgba(245, 158, 11, 0.1);
-  --error-bg: rgba(239, 68, 68, 0.1);
-  --info-bg: rgba(59, 130, 246, 0.1);
-
-  /* Component Specific */
   --input-bg: rgba(0, 0, 0, 0.03);
   --panel-bg-subtle: rgba(0, 0, 0, 0.02);
   --badge-bg: rgba(0, 0, 0, 0.04);
 
-  /* Scrollbar */
+  /* Scrollbar - Solid colors for Windows/WebView2 compatibility */
   --scrollbar-track-bg: #f8fafc;
   /* Match bg-primary */
   --scrollbar-thumb-bg: #cbd5e1;

@@ -2,8 +2,6 @@
   <div class="app-layout">
     <HeaderBar 
       :status="connectionStatus" 
-      :theme="theme"
-      @toggle-theme="toggleTheme"
     />
     
     <main class="main-content">
@@ -268,7 +266,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted } from 'vue';
+import { ref, computed } from 'vue';
 import HeaderBar from './components/HeaderBar.vue';
 import ToolList from './components/ToolList.vue';
 import ResourcePanel from './components/ResourcePanel.vue';
@@ -276,25 +274,8 @@ import PromptPanel from './components/PromptPanel.vue';
 import type { Tool, Resource, Prompt, HeaderPair, ConnectResult, ToolCallPayload } from '@/types';
 import { mcpApi, isRunningInTauri } from '@/services/mcpApi';
 
-const theme = ref<'dark' | 'light'>('dark');
 
-const toggleTheme = () => {
-  theme.value = theme.value === 'dark' ? 'light' : 'dark';
-  document.documentElement.setAttribute('data-theme', theme.value);
-  localStorage.setItem('mcp-inspector-theme', theme.value);
-};
-
-onMounted(() => {
-  // Initialize theme
-  const savedTheme = localStorage.getItem('mcp-inspector-theme') as 'dark' | 'light';
-  if (savedTheme) {
-    theme.value = savedTheme;
-  } else if (window.matchMedia('(prefers-color-scheme: light)').matches) {
-    theme.value = 'light';
-  }
-  document.documentElement.setAttribute('data-theme', theme.value);
-});
-
+// Theme initialization removed as we are now single-theme
 const serverUrl = ref('http://localhost:8000/mcp');
 const headerInputs = ref<HeaderPair[]>([{ name: '', value: '' }]);
 const connectionStatus = ref<'disconnected' | 'connecting' | 'connected' | 'error'>('disconnected');
@@ -304,7 +285,7 @@ const tools = ref<Tool[]>([]);
 const resources = ref<Resource[]>([]);
 const prompts = ref<Prompt[]>([]);
 const logs = ref<string[]>([]);
-const historyLimit = 10;
+const historyLimit = 5;
 const HISTORY_SUMMARY_LENGTH = 100;
 const historyExpanded = ref(false);
 const runningInTauri = ref(isRunningInTauri());

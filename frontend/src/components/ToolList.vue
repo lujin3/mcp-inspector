@@ -552,14 +552,17 @@ function handleCall(tool: Tool) {
 
 .markdown-description :deep(p) { margin: 8px 0; }
 .markdown-description :deep(code) { 
-  background: rgba(255, 255, 255, 0.08);
+  background: rgba(0, 0, 0, 0.06);
+  color: var(--primary-color);
   padding: 2px 5px;
   border-radius: 4px;
   font-family: var(--font-mono);
   font-size: 0.85em;
+  font-weight: 500;
 }
 .markdown-description :deep(pre) {
-  background: rgba(0, 0, 0, 0.3);
+  background: #f1f5f9; /* Slate 100 - consistent light gray */
+  border: 1px solid var(--border-subtle);
   padding: 12px;
   border-radius: 8px;
   overflow: auto;
@@ -570,7 +573,10 @@ function handleCall(tool: Tool) {
   margin: 8px 0;
 }
 .markdown-description :deep(li) { margin: 4px 0; }
-.markdown-description :deep(strong) { color: var(--text-primary); }
+.markdown-description :deep(strong) { 
+  color: var(--text-primary); 
+  font-weight: 600;
+}
 
 .tool-actions {
   display: flex;
