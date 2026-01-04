@@ -1,22 +1,51 @@
 # MCP Inspector
 
-基于 Tauri 2 + Vue 3 重新实现的 MCP (Model Context Protocol) 检查器，前端由 Vue 负责渲染工具/资源/提示与日志面板，Rust 后端透过 Tauri 命令调用 `rmcp` 客户端并与 MCP 服务器交互。
+![License](https://img.shields.io/badge/license-MIT-blue.svg)
+![Version](https://img.shields.io/badge/version-0.0.7-green.svg)
+![Tauri](https://img.shields.io/badge/Tauri-v2-orange.svg)
+![Vue](https://img.shields.io/badge/Vue-3-success.svg)
 
-## 目录结构
+**MCP Inspector** 是基于 **Tauri 2 + Vue 3** 重构的 MCP (Model Context Protocol) 调试工具。前端通过 Vue 3 构建响应式界面，后端利用 Rust (Tauri) 与 `rmcp` 客户端实现高效稳定的协议交互。
 
-- `frontend/`：Vue 3 + Vite 单页应用，渲染界面并通过 `@tauri-apps/api/tauri` 的 `invoke` 调用 Rust 命令（`connect_mcp`, `list_tools`, `call_tool`, 等）。  
-- `src-tauri/`：Tauri 2 Rust 后端，包含所有 MCP 通道逻辑，利用 `rmcp` 和 `reqwest` 向服务器发起请求，并返回 JSON 结构给前端。  
-- `Cargo.toml`：工作区配置，仅包含 `src-tauri` crate。
+---
 
-## 运行
+## ✨ 核心特性
 
-### 准备
+- **🔌 连接管控**
+  - 支持自定义服务器 URL（默认 `http://localhost:8080/mcp`）与请求头。
+  - **历史记录**：自动保存最近的连接配置，支持一键回填，提升调试效率。
+  - **状态实时同步**：顶部状态栏实时反馈连接健康状况。
 
-1. 安装 Node.js 与 npm/yarn；  
-2. 安装 Rust toolchain（stable）和 Tauri CLI（`cargo install tauri-cli`）。  
-3. 若在 Linux 上构建，确保系统提供 [WebKitGTK](https://webkitgtk.org/)，例如通过 `sudo apt install libwebkit2gtk-4.1-dev` 以满足 Tauri/Wry 的 C 依赖，否则 `cargo tauri build`/`cargo check` 会报缺少 `webkit2gtk-4.1`。
+- **🛠️ 工具调试**
+  - **动态表单**：基于 `input_schema` 自动生成校验表单，拒绝手动构造 JSON 的繁琐。
+  - **Markdown 渲染**：工具描述与长文本结果支持 Markdown 优美展示。
+  - **结果内嵌**：执行结果直接在卡片内展示，无需跳转，反馈链路更短。
 
-### 开发模式
+- **📦 资源与提示**
+  - 提供 **Resources** 与 **Prompts** 的独立视图，支持快速查阅与检索。
+
+- **🎨 视觉体验**
+  - **单一亮色主题**：精心调优的清爽亮色界面（Light Mode Only），彻底解决 Windows 下 WebView2 滚动条渲染伪影问题。
+  - **侧边栏布局**：左侧统一管理连接与日志，右侧专注内容探索，大屏（1920px）适配更佳。
+
+## 📂 目录结构
+
+| 目录 | 说明 |
+| :--- | :--- |
+| `frontend/` | **Vue 3 + Vite** SPA 前端。负责 UI 渲染，通过 `@tauri-apps/api` 调用后端命令。 |
+| `src-tauri/` | **Tauri 2 Rust** 后端。封装 MCP 通信逻辑，桥接前端与 `rmcp` 客户端。 |
+| `Cargo.toml` | 工作区配置，仅包含 backend crate。 |
+
+## 🚀 快速上手
+
+### 1. 环境准备
+
+- **Node.js** (推荐 LTS) + npm/yarn/pnpm
+- **Rust Toolchain** (Stable)
+- **Tauri CLI**: `cargo install tauri-cli`
+- **Linux 依赖** (仅 Linux): `sudo apt install libwebkit2gtk-4.1-dev`
+
+### 2. 开发模式
 
 ```bash
 cd frontend
@@ -24,44 +53,41 @@ npm install
 npm run tauri
 ```
 
-该命令会先启动 Vite 开发服务器（`localhost:5173`），再通过 Tauri 打开桌面窗口。修改 Vue 文件会自动热更新。
+> 此命令将启动 Vite 开发服务器 (localhost:5173) 并自动打开 Tauri 桌面窗口，支持热更新。
 
-### 构建发布
+### 3. 构建发布
 
 ```bash
 cd frontend
-npm install
 npm run build
 cd ../src-tauri
 cargo tauri build
 ```
 
-Vue 资产会被打包到 `frontend/dist`，Tauri 会将其嵌入最终应用。
+> 构建产物位于 `src-tauri/target/release/bundle`。
 
-## 后端命令
+## 📝 更新日志 (v0.0.7)
 
-Rust 侧提供以下 `tauri::command` 接口供 Vue 调用：
+本次更新主要集中在**体验优化**与**稳定性修复**：
 
-- `connect_mcp(payload)`：连接 MCP 服务器，可以传入 `url`（默认 `http://localhost:8000/mcp`）与一组 `HeaderPair`，命令会在结果里返回已经发送的 headers 以方便前端记录。  
-- `list_tools()` / `list_resources()` / `list_prompts()`：返回简化的工具/资源/提示结构供前端渲染。  
-- `call_tool({ name, args })`：调用工具时传入 optional JSON 对象（UI 会根据 schema 或 raw JSON 自动拼装），命令只接受对象类型以避免非结构化 payload。
+- **✨ 新增**：连接配置历史记录功能 (History Dropdown)。
+- **🏗️ 调整**：默认服务器端口调整为 `8080`。
+- **🎨 优化**：移除多主题切换，锁定为**亮色主题**以修复 Windows 渲染问题。
+- **🐛 修复**：
+    - 工具描述 Markdown 溢出导致窗口撑大。
+    - 启动时偶发的白屏问题 (Missing import)。
+    - Windows 下 `reqwest` 连接稳定性优化。
 
-这些命令都共享一个 `McpSession`，它在全局状态里维护 `rmcp::service::RunningService` 实例，确保前端调用期间连接不会被重建。
+## 🔧 后端命令 (Tauri Commands)
 
-## 前端交互
+Rust 端暴露了以下命令供前端透传调用：
 
-- 顶部连接面板允许指定服务器 URL、维护一组 header 并展示最后一次连接的 URL/headers 与连接按钮，操作结果会写入日志流。  
-- 左侧工具卡片展示名称/描述，并根据工具的 `input_schema.properties` 自动生成字段输入；若未提供 schema，则支持自由 JSON 并会校验是否为对象。  
-- 右侧面板依次展示 Resources、Prompts 与日志信息，日志也会记录调用工具/连接的返回值与错误。  
-- 顶部状态栏显示连接状态，Vue 插件 `@tauri-apps/api` 的 `invoke` 用于向 Rust 发送命令。
+- `connect_mcp(url, headers)`: 建立 MCP 连接。
+- `list_tools()`: 获取工具列表。
+- `list_resources()`: 获取资源列表。
+- `list_prompts()`: 获取提示列表。
+- `call_tool(name, args)`: 执行工具调用 (参数需符合 Schema)。
 
-## 技术栈
+---
 
-- Rust + Tauri：负责 MCP 通信与命令暴露。  
-- Vue 3 + Vite：提供响应式界面与表单控件。  
-- rmcp：官方 MCP Rust SDK。  
-- reqwest + sse-stream：实现可容忍省略 `Content-Type` 的 SSE transport。
-
-## 贡献
-
-欢迎提交 Issue 或 Pull Request；如果需要扩展工具调用、添加提示模板、或替换 UI 样式都可以在 frontend 里进行迭代。
+> **Note**: 本项目旨在提供一个轻量、现代化的 MCP 协议调试环境。欢迎提交 Issue 或 PR！
