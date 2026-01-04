@@ -12,7 +12,10 @@
         </div>
         <div class="brand-text">
           <h1>MCP Inspector</h1>
-          <span class="version">v1.0.0</span>
+          <div class="brand-meta">
+            <span class="version">v0.0.3</span>
+            <span class="author">by lujin</span>
+          </div>
         </div>
       </div>
 
@@ -128,10 +131,26 @@ const statusText = computed(() => {
   letter-spacing: -0.02em;
 }
 
+.brand-meta {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
 .version {
   font-size: 0.75rem;
   color: var(--text-muted);
   font-weight: 500;
+  background: rgba(255, 255, 255, 0.05);
+  padding: 1px 6px;
+  border-radius: 4px;
+}
+
+.author {
+  font-size: 0.7rem;
+  color: var(--text-dim);
+  font-style: italic;
+  opacity: 0.8;
 }
 
 .header-right {

@@ -341,7 +341,7 @@ const tabOptions = [
 
 const activeTab = ref<InspectorTab>('tools');
 const toolResults = ref<ToolResultEntry[]>([]);
-const MAX_TOOL_RESULTS = 6;
+const MAX_TOOL_RESULTS = 1;
 const MAX_LOGS = 200;
 
 const visibleHistory = computed(() => {

@@ -3,7 +3,7 @@ name = "mcp_inspector_tauri"
 version = "0.1.0"
 edition = "2021"
 description = "Tauri backend for the MCP Inspector"
-authors = ["Your Name <your.email@example.com>"]
+authors = ["lujin <lujin@example.com>"]
 
 [lib]
 name = "mcp_inspector_backend"

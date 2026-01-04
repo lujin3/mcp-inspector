@@ -28,7 +28,7 @@
           </div>
           <div class="tool-meta">
             <h3>{{ tool.title || tool.name }}</h3>
-            <p v-if="tool.description" class="tool-desc">{{ tool.description }}</p>
+            <p v-if="tool.description && expandedTool !== tool.name" class="tool-desc-preview">{{ tool.description }}</p>
           </div>
         </div>
         <div class="tool-actions">
@@ -45,6 +45,8 @@
 
       <!-- Tool Body (Expandable) -->
       <div class="tool-body" v-show="expandedTool === tool.name">
+        <!-- Markdown Description -->
+        <div v-if="tool.description" class="markdown-description" v-html="renderMarkdown(tool.description)"></div>
         <!-- Raw JSON Input -->
         <div v-if="fields(tool).length === 0" class="json-input-section">
           <label class="input-label">
@@ -168,6 +170,7 @@
 
 <script setup lang="ts">
 import { reactive, ref } from 'vue';
+import { marked } from 'marked';
 import type { Tool, ToolCallPayload } from '@/types';
 
 const props = defineProps<{ tools: Tool[] }>();
@@ -181,6 +184,14 @@ const schemaArgs = reactive<Record<string, Record<string, string>>>({});
 const booleanArgs = reactive<Record<string, Record<string, boolean>>>({});
 const jsonErrors = reactive<Record<string, string | null>>({});
 const expandedTool = ref<string | null>(null);
+
+function renderMarkdown(text: string) {
+  try {
+    return marked.parse(text);
+  } catch (e) {
+    return text;
+  }
+}
 
 function toggleTool(toolName: string) {
   expandedTool.value = expandedTool.value === toolName ? null : toolName;
@@ -490,16 +501,47 @@ function handleCall(tool: Tool) {
   color: var(--text-primary);
 }
 
-.tool-desc {
+.tool-desc-preview {
   font-size: 0.82rem;
   color: var(--text-muted);
   margin: 0;
   line-height: 1.4;
-  display: -webkit-box;
-  -webkit-line-clamp: 2;
-  -webkit-box-orient: vertical;
+  white-space: nowrap;
   overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 400px;
 }
+
+.markdown-description {
+  margin-top: 12px;
+  font-size: 0.88rem;
+  line-height: 1.6;
+  color: var(--text-secondary);
+  border-bottom: 1px dashed var(--border-subtle);
+  padding-bottom: 16px;
+}
+
+.markdown-description :deep(p) { margin: 8px 0; }
+.markdown-description :deep(code) { 
+  background: rgba(255, 255, 255, 0.08);
+  padding: 2px 5px;
+  border-radius: 4px;
+  font-family: var(--font-mono);
+  font-size: 0.85em;
+}
+.markdown-description :deep(pre) {
+  background: rgba(0, 0, 0, 0.3);
+  padding: 12px;
+  border-radius: 8px;
+  overflow: auto;
+  margin: 12px 0;
+}
+.markdown-description :deep(ul), .markdown-description :deep(ol) {
+  padding-left: 20px;
+  margin: 8px 0;
+}
+.markdown-description :deep(li) { margin: 4px 0; }
+.markdown-description :deep(strong) { color: var(--text-primary); }
 
 .tool-actions {
   display: flex;

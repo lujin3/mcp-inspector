@@ -1,6 +1,7 @@
 {
   "name": "mcp-inspector-ui",
   "version": "0.1.0",
+  "author": "lujin",
   "private": true,
   "type": "module",
   "scripts": {
@@ -9,8 +10,9 @@
     "tauri": "tauri dev"
   },
   "dependencies": {
-    "vue": "^3.4.0",
-    "@tauri-apps/api": "^2.1.0"
+    "@tauri-apps/api": "^2.1.0",
+    "marked": "^17.0.1",
+    "vue": "^3.4.0"
   },
   "devDependencies": {
     "@vitejs/plugin-vue": "^6.0.0",
