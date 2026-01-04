@@ -88,6 +88,11 @@ Rust 端暴露了以下命令供前端透传调用：
 - `list_prompts()`: 获取提示列表。
 - `call_tool(name, args)`: 执行工具调用 (参数需符合 Schema)。
 
+
 ---
 
 > **Note**: 本项目旨在提供一个轻量、现代化的 MCP 协议调试环境。欢迎提交 Issue 或 PR！
+
+## 📄 License
+
+本项目基于 [MIT License](./LICENSE) 开源。
