@@ -160,6 +160,31 @@
           </svg>
           {{ callingTools.has(tool.name) ? '执行中...' : '执行工具' }}
         </button>
+
+        <!-- Local Tool Result -->
+        <div 
+          v-for="result in results.filter(r => r.toolName === tool.name)" 
+          :key="result.id"
+          class="local-result animate-fadeIn"
+          :class="result.status"
+        >
+          <div class="result-header">
+            <div class="result-status-title">
+              <div class="result-status-pill" :class="result.status">
+                <svg v-if="result.status === 'success'" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3">
+                  <polyline points="20 6 9 17 4 12"/>
+                </svg>
+                <svg v-else width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3">
+                  <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+                </svg>
+                {{ result.status === 'success' ? '成功' : '失败' }}
+              </div>
+            </div>
+            <time class="result-time">{{ result.timestamp }}</time>
+          </div>
+          <p class="result-msg" v-if="result.message">{{ result.message }}</p>
+          <pre v-if="result.payload" class="result-payload-box">{{ result.payload }}</pre>
+        </div>
       </div>
     </article>
   </div>
@@ -168,11 +193,12 @@
 <script setup lang="ts">
 import { reactive, ref } from 'vue';
 import { marked } from 'marked';
-import type { Tool, ToolCallPayload } from '@/types';
+import type { Tool, ToolCallPayload, ToolResultEntry } from '@/types';
 
 const props = defineProps<{ 
   tools: Tool[],
-  callingTools: Set<string>
+  callingTools: Set<string>,
+  results: ToolResultEntry[]
 }>();
 
 const emits = defineEmits<{
@@ -833,6 +859,72 @@ function handleCall(tool: Tool) {
 
 @keyframes spin {
   to { transform: rotate(360deg); }
+}
+
+/* Local Result Styles */
+.local-result {
+  margin-top: 20px;
+  padding: 16px;
+  background: rgba(255, 255, 255, 0.03);
+  border-radius: var(--radius-md);
+  border-left: 3px solid transparent;
+  animation: slideUp 0.3s ease-out;
+}
+
+.local-result.success {
+  border-left-color: var(--success);
+  background: linear-gradient(90deg, rgba(16, 185, 129, 0.05) 0%, transparent 100%);
+}
+
+.local-result.error {
+  border-left-color: var(--error);
+  background: linear-gradient(90deg, rgba(239, 68, 68, 0.05) 0%, transparent 100%);
+}
+
+.result-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 10px;
+}
+
+.result-status-pill {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.result-status-pill.success { color: var(--success); }
+.result-status-pill.error { color: var(--error); }
+
+.result-time {
+  font-size: 0.7rem;
+  color: var(--text-dim);
+  font-family: var(--font-mono);
+}
+
+.result-msg {
+  font-size: 0.85rem;
+  margin: 0 0 10px;
+  color: var(--text-secondary);
+  line-height: 1.5;
+}
+
+.result-payload-box {
+  margin: 0;
+  padding: 12px;
+  background: rgba(0, 0, 0, 0.4);
+  border-radius: var(--radius-sm);
+  font-size: 0.78rem;
+  color: var(--text-secondary);
+  overflow: auto;
+  max-height: 300px;
+  font-family: 'JetBrains Mono', monospace;
+  border: 1px solid rgba(255, 255, 255, 0.05);
 }
 
 @keyframes slideUp {

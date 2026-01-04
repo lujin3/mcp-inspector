@@ -183,48 +183,12 @@
             <div class="tab-content">
               <!-- Tools Tab -->
               <div v-if="activeTab === 'tools'" class="tab-panel animate-fadeIn">
-                <ToolList :tools="tools" :callingTools="callingTools" @call="handleCallTool" />
-                
-                <!-- Tool Results -->
-                <div v-if="toolResults.length" class="results-section">
-                  <div class="section-header">
-                    <h3>
-                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                        <polyline points="9 11 12 14 22 4"/>
-                        <path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/>
-                      </svg>
-                      执行结果
-                    </h3>
-                    <span class="count-badge">{{ toolResults.length }}</span>
-                  </div>
-                  <div class="results-grid">
-                    <article
-                      v-for="result in toolResults"
-                      :key="result.id"
-                      class="result-card"
-                      :class="result.status"
-                    >
-                      <div class="result-header">
-                        <div class="result-title">
-                          <div class="result-status-icon" :class="result.status">
-                            <svg v-if="result.status === 'success'" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                              <polyline points="20 6 9 17 4 12"/>
-                            </svg>
-                            <svg v-else width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                              <circle cx="12" cy="12" r="10"/>
-                              <line x1="12" y1="8" x2="12" y2="12"/>
-                              <line x1="12" y1="16" x2="12.01" y2="16"/>
-                            </svg>
-                          </div>
-                          <strong>{{ result.toolName }}</strong>
-                        </div>
-                        <time>{{ result.timestamp }}</time>
-                      </div>
-                      <p class="result-message" :class="result.status">{{ result.message }}</p>
-                      <pre v-if="result.payload" class="result-payload">{{ result.payload }}</pre>
-                    </article>
-                  </div>
-                </div>
+                <ToolList 
+                  :tools="tools" 
+                  :callingTools="callingTools"
+                  :results="toolResults"
+                  @call="handleCallTool" 
+                />
               </div>
 
               <!-- Resources Tab -->
