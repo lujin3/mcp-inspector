@@ -224,7 +224,7 @@
                 >
                   <details class="log-details">
                     <summary>
-                      <span class="log-index">{{ idx + 1 }}</span>
+                      <span class="log-index">{{ logs.length - idx }}</span>
                       <span class="log-text">{{ summarizeLog(entry) }}</span>
                     </summary>
                     <pre class="log-full">{{ entry }}</pre>
