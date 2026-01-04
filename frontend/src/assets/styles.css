@@ -64,11 +64,10 @@
   --badge-bg: rgba(255, 255, 255, 0.05);
 
   /* Scrollbar */
-  --scrollbar-track: rgba(0, 0, 0, 0.2);
-  --scrollbar-thumb: rgba(139, 92, 246, 0.3);
-  --scrollbar-thumb-hover: rgba(139, 92, 246, 0.5);
-  --app-color-scheme: dark;
-  color-scheme: var(--app-color-scheme);
+  --scrollbar-track-bg: #0a0e1a;
+  /* Match bg-primary */
+  --scrollbar-thumb-bg: #4b5563;
+  --scrollbar-thumb-hover-bg: #6b7280;
 }
 
 [data-theme='light'] {
@@ -105,11 +104,10 @@
   --badge-bg: rgba(0, 0, 0, 0.04);
 
   /* Scrollbar */
-  --scrollbar-track: rgba(15, 23, 42, 0.08);
-  --scrollbar-thumb: rgba(15, 23, 42, 0.35);
-  --scrollbar-thumb-hover: rgba(15, 23, 42, 0.55);
-  --app-color-scheme: light;
-
+  --scrollbar-track-bg: #f8fafc;
+  /* Match bg-primary */
+  --scrollbar-thumb-bg: #cbd5e1;
+  --scrollbar-thumb-hover-bg: #94a3b8;
 }
 
 /* Reset & Base */
@@ -133,8 +131,11 @@ body {
   background: var(--bg-primary);
   color: var(--text-primary);
   line-height: 1.6;
+  line-height: 1.6;
   overflow-x: hidden;
-  scrollbar-color: var(--scrollbar-thumb) var(--scrollbar-track);
+  /* Standard Scrollbar */
+  scrollbar-width: thin;
+  scrollbar-color: var(--scrollbar-thumb-bg) var(--scrollbar-track-bg);
 }
 
 #app {
@@ -145,24 +146,25 @@ body {
 
 /* Scrollbar Styling */
 /* Scrollbar Styling */
-*::-webkit-scrollbar {
+/* Custom Scrollbar for WebKit */
+::-webkit-scrollbar {
   width: 8px;
   height: 8px;
 }
 
-*::-webkit-scrollbar-track {
-  background: var(--scrollbar-track);
-  border-radius: 4px;
+::-webkit-scrollbar-track {
+  background: var(--scrollbar-track-bg);
 }
 
-*::-webkit-scrollbar-thumb {
-  background: var(--scrollbar-thumb);
+::-webkit-scrollbar-thumb {
+  background: var(--scrollbar-thumb-bg);
   border-radius: 4px;
-  transition: background var(--transition-fast);
+  border: 2px solid var(--scrollbar-track-bg);
+  /* Check effect, simulates padding */
 }
 
-*::-webkit-scrollbar-thumb:hover {
-  background: var(--scrollbar-thumb-hover);
+::-webkit-scrollbar-thumb:hover {
+  background: var(--scrollbar-thumb-hover-bg);
 }
 
 /* Selection */
