@@ -1,6 +1,6 @@
 [package]
 name = "mcp_inspector"
-version = "0.0.3"
+version = "0.0.5"
 edition = "2021"
 description = "Tauri backend for the MCP Inspector"
 authors = ["lujin <lujin@example.com>"]
@@ -23,3 +23,7 @@ futures-util = "0.3"
 
 [build-dependencies]
 tauri-build = { version = "2", features = [] }
+
+[workspace]
+resolver = "2"
+members = ["."]
