@@ -48,34 +48,8 @@
         <!-- Markdown Description -->
         <div v-if="tool.description" class="markdown-description" v-html="renderMarkdown(tool.description)"></div>
 
-        <!-- Raw JSON Input -->
-        <div v-if="fields(tool).length === 0" class="json-input-section">
-          <label class="input-label">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/>
-              <rect x="8" y="2" width="8" height="4" rx="1" ry="1"/>
-            </svg>
-            参数 (JSON 格式)
-          </label>
-          <div class="textarea-wrapper">
-            <textarea
-              v-model="jsonArgs[tool.name]"
-              placeholder='{"key": "value"}'
-              rows="4"
-              class="json-textarea"
-              :class="{ 'has-error': jsonErrors[tool.name] }"
-            ></textarea>
-          </div>
-          <p class="field-error" v-if="jsonErrors[tool.name]">
-            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>
-            </svg>
-            {{ jsonErrors[tool.name] }}
-          </p>
-        </div>
-
-        <!-- Schema Fields -->
-        <div v-else class="schema-fields">
+        <!-- Tool Parameters (Only show if fields exist) -->
+        <div v-if="fields(tool).length > 0" class="schema-fields">
           <label class="input-label">
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
               <rect x="3" y="3" width="18" height="18" rx="2" ry="2"/>
@@ -414,11 +388,8 @@ function handleCall(tool: Tool) {
       }
     });
   } else {
-    const raw = (jsonArgs[tool.name] ?? '').trim();
-    if (!raw) {
-      jsonErrors[tool.name] = '请输入执行参数 (JSON)';
-      hasError = true;
-    }
+    // No explicit fields defined, allow empty execution
+    jsonErrors[tool.name] = null;
   }
 
   if (hasError) return;
