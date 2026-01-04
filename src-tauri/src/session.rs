@@ -147,9 +147,15 @@ impl From<rmcp::model::Prompt> for PromptView {
 }
 
 pub fn build_http_client_with_headers(headers: &[(String, String)]) -> Result<Client, String> {
-    let mut builder = Client::builder().timeout(std::time::Duration::from_secs(10));
-    let mut header_map = HeaderMap::new();
+    let mut builder = Client::builder()
+        .timeout(std::time::Duration::from_secs(10))
+        .user_agent("MCP-Inspector/1.0 (Windows; Tauri)")
+        .http1_only() // 强制使用 HTTP/1.1，避免部分服务器 HTTP/2 协商失败导致 Transport closed
+        .tcp_nodelay(true)
+        .pool_idle_timeout(std::time::Duration::from_secs(30))
+        .pool_max_idle_per_host(5);
 
+    let mut header_map = HeaderMap::new();
     for (name, value) in headers {
         let name = name.trim();
         let value = value.trim();

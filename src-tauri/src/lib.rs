@@ -10,7 +10,7 @@ use std::sync::Arc;
 use tauri::{command, State};
 use tokio::sync::Mutex;
 
-const DEFAULT_URL: &str = "http://localhost:8003/mcp";
+const DEFAULT_URL: &str = "http://localhost:8000/mcp";
 
 pub struct AppState {
     session: Mutex<Option<Arc<McpSession>>>,
@@ -103,7 +103,7 @@ async fn connect_mcp(
         Ok(session) => session,
         Err(err) => {
             let header_summary = if headers.is_empty() {
-                "无".to_string()
+                "empty".to_string()
             } else {
                 headers
                     .iter()
