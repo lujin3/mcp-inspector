@@ -165,9 +165,15 @@ async fn list_prompts(state: State<'_, AppState>) -> Result<Vec<PromptView>, Str
 
 #[command]
 async fn call_tool(state: State<'_, AppState>, payload: CallToolPayload) -> Result<Value, String> {
+    println!("🎯 [Tauri] 接收到 call_tool 命令: {}", payload.name);
+    println!("📋 [Tauri] 原始参数: {:?}", payload.args);
+
     let args = match payload.args {
         Some(Value::Object(map)) => Some(map),
-        Some(_) => return Err("Tool arguments must be a JSON object".into()),
+        Some(_) => {
+            println!("❌ [Tauri] 参数类型错误: 必须是 JSON 对象");
+            return Err("Tool arguments must be a JSON object".into());
+        }
         None => None,
     };
     let session = {
@@ -175,7 +181,19 @@ async fn call_tool(state: State<'_, AppState>, payload: CallToolPayload) -> Resu
         guard
             .as_ref()
             .cloned()
-            .ok_or_else(|| "Not connected to MCP server".to_string())?
+            .ok_or_else(|| {
+                println!("❌ [Tauri] 未连接到 MCP 服务器");
+                "Not connected to MCP server".to_string()
+            })?
     };
-    session.call_tool(payload.name, args).await
+    
+    println!("🔄 [Tauri] 调用 session.call_tool...");
+    let result = session.call_tool(payload.name.clone(), args).await;
+    
+    match &result {
+        Ok(_) => println!("✅ [Tauri] call_tool 命令完成: {}", payload.name),
+        Err(e) => println!("❌ [Tauri] call_tool 命令失败: {} - {}", payload.name, e),
+    }
+    
+    result
 }

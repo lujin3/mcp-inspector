@@ -606,6 +606,10 @@ function buildPayloadString(value: unknown) {
 
 async function handleCallTool(payload: ToolCallPayload) {
   const timestamp = new Date().toLocaleTimeString();
+  
+  // 清空该工具的旧结果
+  toolResults.value = toolResults.value.filter(r => r.toolName !== payload.name);
+  
   callingTools.value.add(payload.name);
   try {
     const result = await mcpApi.callTool(payload.name, payload.args);

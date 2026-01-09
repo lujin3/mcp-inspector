@@ -65,7 +65,7 @@
                   <span class="field-name">{{ field }}</span>
                   <span v-if="isRequired(tool, field)" class="required-badge">必填</span>
                 </div>
-                <span v-if="fieldType(tool, field)" class="field-type">{{ fieldType(tool, field) }}</span>
+                <span v-if="fieldType(tool, field)" class="field-type" :title="`调试: inputType=${getInputType(tool, field)}, schemaType=${fieldType(tool, field)}`">{{ fieldType(tool, field) }}</span>
               </div>
               <p v-if="fieldDescription(tool, field)" class="field-desc">{{ fieldDescription(tool, field) }}</p>
               
@@ -151,7 +151,7 @@
         <button 
           class="run-button" 
           type="button" 
-          @click="handleCall(tool)"
+          @click.stop="handleCall(tool)"
           :disabled="callingTools.has(tool.name)"
         >
           <div v-if="callingTools.has(tool.name)" class="btn-loader"></div>
@@ -160,6 +160,21 @@
           </svg>
           {{ callingTools.has(tool.name) ? '执行中...' : '执行工具' }}
         </button>
+        
+        <!-- Validation Error Summary -->
+        <div v-if="validationErrors[tool.name] && Object.keys(validationErrors[tool.name]).length > 0" class="validation-summary">
+          <div class="summary-header">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>
+            </svg>
+            <span>请修复以下问题后再执行:</span>
+          </div>
+          <ul class="error-list">
+            <li v-for="(error, field) in validationErrors[tool.name]" :key="field">
+              <strong>{{ field }}</strong>: {{ error }}
+            </li>
+          </ul>
+        </div>
 
         <!-- Local Tool Result -->
         <div 
@@ -330,8 +345,21 @@ function booleanEntry(tool: Tool): Record<string, boolean> {
   return booleanArgs[tool.name];
 }
 
-function coerceValue(raw: string, schema?: Record<string, any>): unknown {
-  const trimmed = raw.trim();
+function coerceValue(raw: any, schema?: Record<string, any>): unknown {
+  // 确保 raw 是字符串类型,避免 .trim() 错误
+  if (raw === null || raw === undefined) return undefined;
+  
+  // 如果已经是数字类型,直接返回(来自 v-model 的数字)
+  if (typeof raw === 'number') {
+    console.log('coerceValue: 接收到数字类型', raw);
+    return raw;
+  }
+  
+  // 转换为字符串
+  const rawStr = String(raw);
+  const trimmed = rawStr.trim();
+  console.log('coerceValue: raw=', raw, 'trimmed=', trimmed, 'schema.type=', schema?.type);
+  
   if (!trimmed) return undefined;
   const type = normalizeType(schema?.type);
   if (!type) return trimmed;
@@ -385,7 +413,13 @@ function buildPayload(tool: Tool): Record<string, unknown> | undefined {
     } else {
       const entry = stringValues[field] ?? '';
       const converted = coerceValue(entry, schema);
-      if (converted !== undefined && converted !== '') payload[field] = converted;
+      // 对于数字类型,0 是有效值,不应该被过滤
+      if (converted !== undefined && converted !== '') {
+        payload[field] = converted;
+      } else if (inputType === 'number' && converted === 0) {
+        // 特殊处理:0 是有效的数字值
+        payload[field] = 0;
+      }
     }
   });
   
@@ -393,23 +427,64 @@ function buildPayload(tool: Tool): Record<string, unknown> | undefined {
 }
 
 function handleCall(tool: Tool) {
+  console.log('=== handleCall 开始 ===');
+  console.log('工具名称:', tool.name);
+  
   if (!validationErrors[tool.name]) validationErrors[tool.name] = {};
   else Object.keys(validationErrors[tool.name]).forEach(key => delete validationErrors[tool.name][key]);
   jsonErrors[tool.name] = null;
 
   const fieldList = fields(tool);
+  console.log('参数列表:', fieldList);
   let hasError = false;
 
   if (fieldList.length > 0) {
     const stringValues = schemaEntry(tool);
     const boolValues = booleanEntry(tool);
+    
+    console.log('当前参数值:', stringValues);
+    console.log('布尔参数值:', boolValues);
+    
     fieldList.forEach(field => {
+      const inputType = getInputType(tool, field);
+      const fieldTypeStr = fieldType(tool, field);
+      const isReq = isRequired(tool, field);
+      const value = inputType === 'boolean' ? boolValues[field] : stringValues[field];
+      
+      console.log(`参数 "${field}":`, {
+        inputType,
+        fieldType: fieldTypeStr,
+        required: isReq,
+        value,
+        valueType: typeof value
+      });
+      
       if (isRequired(tool, field)) {
-        const inputType = getInputType(tool, field);
-        const value = inputType === 'boolean' ? boolValues[field] : stringValues[field];
-        if (value === undefined || value === null || (typeof value === 'string' && value.trim() === '')) {
+        
+        // 对于 number 类型,使用更精确的验证
+        if (inputType === 'number') {
+          // 检查是否为空或无效
+          if (value === undefined || value === null || value === '') {
+            console.log(`  ❌ 验证失败: 参数为空`);
+            validationErrors[tool.name][field] = '此参数为必填项';
+            hasError = true;
+          } else if (typeof value === 'string') {
+            // 检查字符串是否能转换为有效数字
+            const numValue = Number(value.trim());
+            if (!Number.isFinite(numValue)) {
+              console.log(`  ❌ 验证失败: 无法转换为数字, value="${value}", numValue=${numValue}`);
+              validationErrors[tool.name][field] = '请输入有效的数字';
+              hasError = true;
+            } else {
+              console.log(`  ✅ 验证通过: 数字值 ${numValue}`);
+            }
+          }
+        } else if (value === undefined || value === null || (typeof value === 'string' && value.trim() === '')) {
+          console.log(`  ❌ 验证失败: 参数为空`);
           validationErrors[tool.name][field] = '此参数为必填项';
           hasError = true;
+        } else {
+          console.log(`  ✅ 验证通过`);
         }
       }
     });
@@ -418,10 +493,23 @@ function handleCall(tool: Tool) {
     jsonErrors[tool.name] = null;
   }
 
-  if (hasError) return;
+  console.log('验证结果 - hasError:', hasError);
+  console.log('验证错误:', validationErrors[tool.name]);
+
+  if (hasError) {
+    console.log('❌ 由于验证错误,阻止执行');
+    return;
+  }
 
   const args = buildPayload(tool);
-  if (jsonErrors[tool.name]) return;
+  console.log('构建的参数:', args);
+  
+  if (jsonErrors[tool.name]) {
+    console.log('❌ JSON 错误:', jsonErrors[tool.name]);
+    return;
+  }
+  
+  console.log('✅ 发送工具调用');
   emits('call', { name: tool.name, args });
 }
 </script>
@@ -930,6 +1018,10 @@ function handleCall(tool: Tool) {
   margin: 0 0 10px;
   color: var(--text-secondary);
   line-height: 1.5;
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+  word-break: break-word;
+  max-width: 100%;
 }
 
 .result-payload-box {
@@ -940,15 +1032,66 @@ function handleCall(tool: Tool) {
   font-size: 0.78rem;
   color: var(--text-secondary);
   overflow: auto;
+  overflow-x: auto;
+  overflow-y: auto;
   max-height: 300px;
+  max-width: 100%;
   font-family: 'JetBrains Mono', monospace;
   border: 1px solid var(--border-subtle);
   white-space: pre-wrap;
-  word-break: break-all;
+  word-wrap: break-word;
+  overflow-wrap: break-word;
 }
 
 @keyframes slideUp {
   from { opacity: 0; transform: translateY(-10px); }
   to { opacity: 1; transform: translateY(0); }
 }
+
+/* Validation Error Summary */
+.validation-summary {
+  margin-top: 12px;
+  padding: 12px;
+  background: rgba(239, 68, 68, 0.08);
+  border: 1px solid rgba(239, 68, 68, 0.3);
+  border-radius: var(--radius-md);
+  animation: slideUp 0.3s ease-out;
+}
+
+.summary-header {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--error);
+  margin-bottom: 8px;
+}
+
+.error-list {
+  margin: 0;
+  padding-left: 20px;
+  list-style: none;
+}
+
+.error-list li {
+  font-size: 0.82rem;
+  color: var(--text-secondary);
+  margin: 4px 0;
+  position: relative;
+}
+
+.error-list li::before {
+  content: "•";
+  position: absolute;
+  left: -12px;
+  color: var(--error);
+  font-weight: bold;
+}
+
+.error-list strong {
+  color: var(--text-primary);
+  font-weight: 600;
+}
+
 </style>
