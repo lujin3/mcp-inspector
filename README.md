@@ -1,7 +1,7 @@
 # MCP Inspector
 
 ![License](https://img.shields.io/badge/license-MIT-blue.svg)
-![Version](https://img.shields.io/badge/version-0.0.8-green.svg)
+![Version](https://img.shields.io/badge/version-0.0.9-green.svg)
 ![Tauri](https://img.shields.io/badge/Tauri-v2-orange.svg)
 ![Vue](https://img.shields.io/badge/Vue-3-success.svg)
 
@@ -75,9 +75,20 @@ cargo tauri build
 
 > 构建产物位于 `src-tauri/target/release/bundle`。
 
-## 📝 更新日志 (v0.0.8)
+## 📝 更新日志 (v0.0.9)
 
-本次更新主要集中在**体验优化**与**稳定性修复**：
+本次更新主要集中在**功能增强**与**工具执行稳定性**：
+
+- **✨ 修复**：
+    - 修复了“执行工具”按钮在处理整数或数字参数时可能无法响应的问题。
+    - 修复了填写非必需 JSON 字段或可选参数时按钮状态异常的 Bug。
+- **🏗️ 优化**：
+    - 改进了工具执行过程中的错误处理与状态反馈。
+    - 增强了前端参数校验逻辑的健壮性。
+
+---
+
+### 历史版本 (v0.0.8)
 
 - **✨ 新增**：连接配置历史记录功能 (History Dropdown)。
 - **🏗️ 调整**：默认服务器端口调整为 `8080`。
