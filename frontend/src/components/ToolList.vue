@@ -1018,9 +1018,7 @@ function handleCall(tool: Tool) {
   margin: 0 0 10px;
   color: var(--text-secondary);
   line-height: 1.5;
-  word-wrap: break-word;
-  overflow-wrap: break-word;
-  word-break: break-word;
+  word-break: break-all;
   max-width: 100%;
 }
 
@@ -1039,8 +1037,7 @@ function handleCall(tool: Tool) {
   font-family: 'JetBrains Mono', monospace;
   border: 1px solid var(--border-subtle);
   white-space: pre-wrap;
-  word-wrap: break-word;
-  overflow-wrap: break-word;
+  word-break: break-all;
 }
 
 @keyframes slideUp {

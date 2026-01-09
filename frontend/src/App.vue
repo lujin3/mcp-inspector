@@ -1078,6 +1078,7 @@ async function handleCallTool(payload: ToolCallPayload) {
   display: flex;
   flex-direction: column;
   gap: 24px;
+  min-width: 0;
 }
 
 .inspector-panel {
